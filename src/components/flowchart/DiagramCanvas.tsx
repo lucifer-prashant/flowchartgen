@@ -374,7 +374,7 @@ case "input":
 <Handle
                 type="target"
                 position={Position.Top}
-                className="!w-3 !h-3 !border-2 !bg-slate-900 transition-all hover:!scale-125"
+                className="!w-3 !h-3 !border-2 !bg-slate-900 hover:!brightness-150"
                 style={{ borderColor: getHandleColor(), pointerEvents: "all" }}
             />
 			<div className="absolute inset-0 z-0">{renderShape()}</div>
@@ -407,21 +407,21 @@ case "input":
 				type="source"
 				position={Position.Bottom}
 				id="bottom"
-				className="!w-3 !h-3 !border-2 !bg-slate-900 transition-all hover:!scale-125"
+				className="!w-3 !h-3 !border-2 !bg-slate-900 hover:!brightness-150"
 				style={{ borderColor: getHandleColor() }}
 			/>
 			<Handle
 				type="source"
 				position={Position.Right}
 				id="right"
-				className="!w-3 !h-3 !border-2 !bg-slate-900 transition-all hover:!scale-125"
+				className="!w-3 !h-3 !border-2 !bg-slate-900 hover:!brightness-150"
 				style={{ borderColor: getHandleColor() }}
 			/>
 			<Handle
 				type="source"
 				position={Position.Left}
 				id="left"
-				className="!w-3 !h-3 !border-2 !bg-slate-900 transition-all hover:!scale-125"
+				className="!w-3 !h-3 !border-2 !bg-slate-900 hover:!brightness-150"
 				style={{ borderColor: getHandleColor() }}
 			/>
 		</div>
