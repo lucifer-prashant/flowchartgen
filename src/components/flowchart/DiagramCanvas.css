@@ -1,0 +1,7 @@
+/* Ensure flowchart nodes have transparent background */
+.react-flow__node, .react-flow__node-output, .react-flow__node-input {
+  background: transparent !important;
+}
+
+/* Ensure handle elements capture mouse events */
+.react-flow__handle { pointer-events: all !important; }
