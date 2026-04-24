@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
 	Loader2,
@@ -10,11 +10,64 @@ import {
 	X,
 	Trash2,
 	RotateCcw,
+	Check,
 } from "lucide-react"
+import {
+	ReactFlow,
+	ReactFlowProvider,
+	Background,
+	BackgroundVariant,
+	useReactFlow,
+} from "@xyflow/react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import type { FlowchartData } from "./DiagramCanvas"
+import { convertToReactFlow, nodeTypes, edgeTypes } from "./DiagramCanvas"
+
+// --- Read-only diagram preview used inside the AI confirmation modal ---
+
+function DiagramPreviewInner({ data }: { data: FlowchartData }) {
+	const { fitView } = useReactFlow()
+	const { nodes, edges } = useMemo(() => convertToReactFlow(data), [data])
+
+	useEffect(() => {
+		const id = requestAnimationFrame(() => fitView({ padding: 0.25, duration: 350 }))
+		return () => cancelAnimationFrame(id)
+	}, [fitView, nodes, edges])
+
+	return (
+		<ReactFlow
+			nodes={nodes}
+			edges={edges}
+			nodeTypes={nodeTypes}
+			edgeTypes={edgeTypes}
+			nodesDraggable={false}
+			nodesConnectable={false}
+			elementsSelectable={false}
+			panOnDrag={false}
+			zoomOnScroll={false}
+			zoomOnPinch={false}
+			zoomOnDoubleClick={false}
+			proOptions={{ hideAttribution: true }}
+			className="bg-transparent">
+			<Background
+				variant={BackgroundVariant.Dots}
+				gap={20}
+				size={1}
+				color="rgba(148,163,184,0.08)"
+			/>
+		</ReactFlow>
+	)
+}
+
+function DiagramPreview({ data }: { data: FlowchartData }) {
+	return (
+		<ReactFlowProvider>
+			<DiagramPreviewInner data={data} />
+		</ReactFlowProvider>
+	)
+}
 
 // Vite proxy: /api/nvidia/* → https://integrate.api.nvidia.com/*
 // Authorization header is forwarded as-is by the proxy (changeOrigin handles the rest)
@@ -442,28 +495,75 @@ Always respond with ONLY the JSON, no explanations.`,
 			</div>
 
 			{/* Preview Modal */}
-			{showPreview && previewData && (
-				<div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
-					<div className="bg-card p-4 rounded-lg max-w-lg w-full max-h-[80vh] overflow-auto">
-						<h3 className="text-lg font-bold mb-2">Diagram Preview</h3>
-						<pre className="text-sm whitespace-pre-wrap">
-							{JSON.stringify(previewData, null, 2)}
-						</pre>
-						<div className="flex justify-end space-x-2 mt-4">
-							<Button onClick={() => { setShowPreview(false); setPreviewData(null); }}>Cancel</Button>
-							<Button
-								onClick={() => {
-									onFlowchartGenerated(previewData);
-									setShowPreview(false);
-									setPreviewData(null);
-								}}
-								>
-								Apply
+			<AnimatePresence>
+				{showPreview && previewData && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 flex items-center justify-center bg-black/70 z-50 p-4">
+						<motion.div
+							initial={{ scale: 0.95, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.95, opacity: 0 }}
+							transition={{ duration: 0.15 }}
+							className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden"
+							style={{ maxHeight: "85vh" }}>
+							{/* Header */}
+							<div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-700/60 shrink-0">
+								<div>
+									<h3 className="text-sm font-semibold text-slate-100">
+										Diagram Preview
+									</h3>
+									<p className="text-xs text-slate-400 mt-0.5">
+										{previewData.nodes.length} nodes ·{" "}
+										{previewData.edges.length} edges — looks good? Apply it to
+										the canvas.
+									</p>
+								</div>
+								<button
+									onClick={() => {
+										setShowPreview(false)
+										setPreviewData(null)
+									}}
+									className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded">
+									<X className="h-4 w-4" />
+								</button>
+							</div>
+
+							{/* Diagram */}
+							<div className="flex-1 min-h-0 bg-slate-950/60" style={{ height: 420 }}>
+								<DiagramPreview data={previewData} />
+							</div>
+
+							{/* Footer */}
+							<div className="flex items-center justify-end gap-2 px-5 py-3.5 border-t border-slate-700/60 bg-slate-900/80 shrink-0">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => {
+										setShowPreview(false)
+										setPreviewData(null)
+									}}
+									className="text-slate-400 hover:text-slate-200">
+									Discard
 								</Button>
-						</div>
-					</div>
-				</div>
-			)}
+								<Button
+									size="sm"
+									onClick={() => {
+										onFlowchartGenerated(previewData)
+										setShowPreview(false)
+										setPreviewData(null)
+									}}
+									className="gap-1.5">
+									<Check className="h-3.5 w-3.5" />
+									Apply to Canvas
+								</Button>
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 
 			{/* Input Area */}
 				<div className="p-4 border-t border-border/50 bg-card/80 shrink-0">

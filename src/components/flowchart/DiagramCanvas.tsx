@@ -428,7 +428,7 @@ case "input":
 	)
 }
 
-const nodeTypes: NodeTypes = {
+export const nodeTypes: NodeTypes = {
 	start: EditableNode,
 	end: EditableNode,
 	process: EditableNode,
@@ -437,7 +437,7 @@ const nodeTypes: NodeTypes = {
 	output: EditableNode,
 }
 
-const edgeTypes: EdgeTypes = {
+export const edgeTypes: EdgeTypes = {
 	editable: EditableEdge,
 }
 
@@ -459,7 +459,7 @@ function measureText(
 	}
 }
 
-function convertToReactFlow(data: FlowchartData): {
+export function convertToReactFlow(data: FlowchartData): {
 	nodes: Node[]
 	edges: Edge[]
 } {
