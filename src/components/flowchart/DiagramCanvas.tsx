@@ -71,6 +71,8 @@ import {
 	BaseEdge,
 	ReactFlowProvider,
 } from "@xyflow/react"
+import { toPng, toJpeg, toSvg } from "html-to-image"
+import { toast } from "sonner"
 import "@xyflow/react/dist/style.css"
 import "./DiagramCanvas.css"
 
@@ -316,7 +318,7 @@ case "input":
 								fill="none"
 								stroke="#a855f7"
 								strokeWidth={strokeWidth}
-								vectorEffect="non-scaling-stretch"
+								vectorEffect="non-scaling-stroke"
 							/>
 						</svg>
 					)
@@ -372,9 +374,8 @@ case "input":
 <Handle
                 type="target"
                 position={Position.Top}
-                pointerEvents="all"
                 className="!w-3 !h-3 !border-2 !bg-slate-900 transition-all hover:!scale-125"
-                style={{ borderColor: getHandleColor() }}
+                style={{ borderColor: getHandleColor(), pointerEvents: "all" }}
             />
 			<div className="absolute inset-0 z-0">{renderShape()}</div>
 			<div className="z-10 px-3 py-2 text-center w-full overflow-hidden">
@@ -539,6 +540,7 @@ function CanvasInner({
 	const { fitView, zoomIn, zoomOut, getViewport } = useReactFlow()
 	const [nodes, setNodes, onNodesChange] = useNodesState([])
 	const [edges, setEdges, onEdgesChange] = useEdgesState([])
+	const canvasRef = useRef<HTMLDivElement>(null)
 
 	const [isLocked, setIsLocked] = useState(false)
 	const [showGrid, setShowGrid] = useState(true)
@@ -756,15 +758,13 @@ const [hasNodes, setHasNodes] = useState(false)
 		setEdges((eds) => eds.filter((e) => !e.selected))
 	}, [setNodes, setEdges])
 
-const clearAll = useCallback(() => {
-		if (confirm("Clear entire canvas?")) {
-			setNodes([])
-			setEdges([])
-			setHasNodes(false)
-			// Also clear persisted data and reset canvas
-			if (onResetCanvas) onResetCanvas()
-			localStorage.removeItem('flowchartData')
-		}
+	const clearAll = useCallback(() => {
+		setNodes([])
+		setEdges([])
+		setHasNodes(false)
+		if (onResetCanvas) onResetCanvas()
+		localStorage.removeItem("flowchartData")
+		toast.success("Canvas cleared")
 	}, [setNodes, setEdges, onResetCanvas])
 
 	// Select / Deselect all nodes (and edges)
@@ -839,11 +839,33 @@ const clearAll = useCallback(() => {
 		)
 	}, [nodes, setNodes])
 
-	const downloadImage = (format: string) => {
-		alert(
-			`Export to ${format.toUpperCase()} — install html-to-image:\nnpm install html-to-image`,
-		)
-	}
+	const downloadImage = useCallback((format: string) => {
+		const el = canvasRef.current?.querySelector(".react-flow__renderer") as HTMLElement | null
+		if (!el) {
+			toast.error("Canvas not ready for export")
+			return
+		}
+		const filename = `flowchart-${Date.now()}`
+		const opts = { backgroundColor: "#0f172a" }
+
+		const run = format === "png"
+			? toPng(el, opts).then((url) => ({ url, ext: "png" }))
+			: format === "jpeg"
+				? toJpeg(el, { ...opts, quality: 0.92 }).then((url) => ({ url, ext: "jpg" }))
+				: toSvg(el).then((url) => ({ url, ext: "svg" }))
+
+		toast.promise(run, {
+			loading: `Exporting ${format.toUpperCase()}...`,
+			success: ({ url, ext }) => {
+				const a = document.createElement("a")
+				a.href = url
+				a.download = `${filename}.${ext}`
+				a.click()
+				return `Saved as ${filename}.${ext}`
+			},
+			error: `Failed to export ${format.toUpperCase()}`,
+		})
+	}, [])
 
 	const saveToJSON = () => {
 		const data = convertFromReactFlow(nodes, edges)
@@ -873,8 +895,9 @@ const clearAll = useCallback(() => {
 					setEdges(newEdges)
 					setHasNodes(newNodes.length > 0)
 					pushHistory(newNodes, newEdges)
+					toast.success("Diagram loaded")
 				} catch {
-					alert("Invalid JSON file")
+					toast.error("Invalid JSON file")
 				}
 			}
 			reader.readAsText(file)
@@ -1255,7 +1278,7 @@ const clearAll = useCallback(() => {
 			)}
 
 			{/* React Flow canvas */}
-			<div className="absolute inset-0 w-full h-full">
+			<div ref={canvasRef} className="absolute inset-0 w-full h-full">
 				<ReactFlow
 					nodes={nodes}
 					edges={edges}

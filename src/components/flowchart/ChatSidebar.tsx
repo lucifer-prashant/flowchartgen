@@ -266,7 +266,6 @@ Always respond with ONLY the JSON, no explanations.`,
 				)
 			}
 		} catch (error) {
-			console.error("Generation error:", error)
 			showError(
 				error instanceof Error
 					? error.message

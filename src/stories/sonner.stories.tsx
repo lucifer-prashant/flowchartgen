@@ -90,13 +90,13 @@ export const WithAction = {
   args: {},
 };
 
-export const Promise = {
+export const PromiseToast = {
   render: () => (
     <div>
       <Toaster />
       <Button
         onClick={() => {
-          const promise = new Promise((resolve) =>
+          const promise = new globalThis.Promise((resolve) =>
             setTimeout(() => resolve({ name: "Sonner" }), 2000)
           );
 

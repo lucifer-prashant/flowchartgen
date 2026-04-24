@@ -19,7 +19,6 @@ export default defineConfig({
 		},
 	},
 	server: {
-		// @ts-ignore
 		allowedHosts: true,
 		proxy: {
 			// Proxy NVIDIA API calls to avoid CORS issues during development
