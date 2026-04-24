@@ -70,6 +70,8 @@ import {
 	EdgeLabelRenderer,
 	BaseEdge,
 	ReactFlowProvider,
+	getNodesBounds,
+	getViewportForBounds,
 } from "@xyflow/react"
 import { toPng, toJpeg, toSvg } from "html-to-image"
 import { toast } from "sonner"
@@ -842,32 +844,52 @@ const [hasNodes, setHasNodes] = useState(false)
 	}, [nodes, setNodes])
 
 	const downloadImage = useCallback((format: string) => {
-		const el = canvasRef.current?.querySelector(".react-flow__renderer") as HTMLElement | null
-		if (!el) {
+		const viewport = canvasRef.current?.querySelector(".react-flow__viewport") as HTMLElement | null
+		if (!viewport) {
 			toast.error("Canvas not ready for export")
 			return
 		}
-		const filename = `flowchart-${Date.now()}`
-		const opts = { backgroundColor: "#0f172a" }
+		if (nodes.length === 0) {
+			toast.error("Nothing to export — canvas is empty")
+			return
+		}
 
-		const run = format === "png"
-			? toPng(el, opts).then((url) => ({ url, ext: "png" }))
-			: format === "jpeg"
-				? toJpeg(el, { ...opts, quality: 0.92 }).then((url) => ({ url, ext: "jpg" }))
-				: toSvg(el).then((url) => ({ url, ext: "svg" }))
+		const bounds = getNodesBounds(nodes)
+		const padding = 48
+		const imgW = Math.max(1200, bounds.width + padding * 2)
+		const imgH = Math.max(800, bounds.height + padding * 2)
+		const { x, y, zoom } = getViewportForBounds(bounds, imgW, imgH, 0.1, 4, padding)
 
-		toast.promise(run, {
-			loading: `Exporting ${format.toUpperCase()}...`,
-			success: ({ url, ext }) => {
-				const a = document.createElement("a")
-				a.href = url
-				a.download = `${filename}.${ext}`
-				a.click()
-				return `Saved as ${filename}.${ext}`
+		const opts = {
+			backgroundColor: "#0f172a",
+			width: imgW,
+			height: imgH,
+			style: {
+				width: `${imgW}px`,
+				height: `${imgH}px`,
+				transform: `translate(${x}px, ${y}px) scale(${zoom})`,
 			},
-			error: `Failed to export ${format.toUpperCase()}`,
+		}
+
+		const ext = format === "jpeg" ? "jpg" : format
+		const filename = `flowchart-${Date.now()}.${ext}`
+		const toastId = toast.loading(`Exporting ${format.toUpperCase()}…`)
+
+		const run =
+			format === "png" ? toPng(viewport, opts) :
+			format === "jpeg" ? toJpeg(viewport, { ...opts, quality: 0.92 }) :
+			toSvg(viewport, opts)
+
+		run.then((url) => {
+			const a = document.createElement("a")
+			a.href = url
+			a.download = filename
+			a.click()
+			toast.success(`Saved ${filename}`, { id: toastId })
+		}).catch(() => {
+			toast.error(`Failed to export ${format.toUpperCase()}`, { id: toastId })
 		})
-	}, [])
+	}, [nodes])
 
 	const saveToJSON = () => {
 		const data = convertFromReactFlow(nodes, edges)
