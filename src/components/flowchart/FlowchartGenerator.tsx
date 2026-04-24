@@ -92,7 +92,11 @@ const toggleSidebar = useCallback(() => {
 						<Zap className="w-3 h-3 text-green-400" />
 						<span className="text-green-400 font-medium">Auto-save enabled</span>
 					</span>
-					<span>Ready</span>
+					{flowchartData && (
+						<span className="text-gray-500">
+							{flowchartData.nodes.length} nodes · {flowchartData.edges.length} edges
+						</span>
+					)}
 				</div>
 				<div className="flex items-center gap-4">
 					<span className="flex items-center gap-1">

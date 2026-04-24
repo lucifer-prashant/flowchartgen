@@ -550,7 +550,9 @@ function CanvasInner({
 	)
 
 const [hasNodes, setHasNodes] = useState(false)
-  const [showQuickGuide, setShowQuickGuide] = useState(true)
+	const [showQuickGuide, setShowQuickGuide] = useState(
+		() => localStorage.getItem("quickGuide") !== "hidden",
+	)
 
   const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([])
 	const [historyIndex, setHistoryIndex] = useState(-1)
@@ -935,7 +937,11 @@ const [hasNodes, setHasNodes] = useState(false)
 	}
 	if (!e.ctrlKey && !e.metaKey && (e.key === "i" || e.key === "h")) {
 		e.preventDefault()
-		setShowQuickGuide(prev => !prev)
+		setShowQuickGuide(prev => {
+			const next = !prev
+			localStorage.setItem("quickGuide", next ? "shown" : "hidden")
+			return next
+		})
 	}
 		}
 		document.addEventListener("keydown", handleKeyDown)
@@ -1037,13 +1043,16 @@ const [hasNodes, setHasNodes] = useState(false)
 							title="Delete (Del)">
 							<Trash2 className="w-3.5 h-3.5 text-red-400" />
 						</Button>
+					</div>
+					{/* Clear All — isolated so it can't be hit by accident */}
+					<div className="flex items-center bg-slate-800/60 rounded-md px-1 py-0.5 border border-red-900/40">
 						<Button
 							variant="ghost"
 							size="icon"
 							onClick={clearAll}
 							className="h-8 w-8 hover:bg-red-500/20"
-							title="Clear All">
-							<Eraser className="w-3.5 h-3.5 text-red-300" />
+							title="Clear entire canvas">
+							<Eraser className="w-3.5 h-3.5 text-red-400/70" />
 						</Button>
 					</div>
 				</div>
@@ -1319,7 +1328,7 @@ const [hasNodes, setHasNodes] = useState(false)
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setShowQuickGuide(false)}
+        onClick={() => { setShowQuickGuide(false); localStorage.setItem("quickGuide", "hidden") }}
         className="absolute top-1 right-1 h-5 w-5 p-0"
         title="Hide Quick Guide (i/h)">
         <X className="w-3 h-3" />
@@ -1341,7 +1350,7 @@ const [hasNodes, setHasNodes] = useState(false)
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => setShowQuickGuide(true)}
+      onClick={() => { setShowQuickGuide(true); localStorage.setItem("quickGuide", "shown") }}
       className="fixed bottom-3 left-3 h-8 w-8"
       title="Show Quick Guide (i/h)">
       <span className="text-sm font-bold">i</span>

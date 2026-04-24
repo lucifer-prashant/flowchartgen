@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
 	Loader2,
@@ -9,68 +9,13 @@ import {
 	AlertCircle,
 	X,
 	Trash2,
-	RotateCcw,
-	Check,
+	CheckCircle2,
 } from "lucide-react"
-import {
-	ReactFlow,
-	ReactFlowProvider,
-	Background,
-	BackgroundVariant,
-	useReactFlow,
-} from "@xyflow/react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import type { FlowchartData } from "./DiagramCanvas"
-import { convertToReactFlow, nodeTypes, edgeTypes } from "./DiagramCanvas"
 
-// --- Read-only diagram preview used inside the AI confirmation modal ---
-
-function DiagramPreviewInner({ data }: { data: FlowchartData }) {
-	const { fitView } = useReactFlow()
-	const { nodes, edges } = useMemo(() => convertToReactFlow(data), [data])
-
-	useEffect(() => {
-		const id = requestAnimationFrame(() => fitView({ padding: 0.25, duration: 350 }))
-		return () => cancelAnimationFrame(id)
-	}, [fitView, nodes, edges])
-
-	return (
-		<ReactFlow
-			nodes={nodes}
-			edges={edges}
-			nodeTypes={nodeTypes}
-			edgeTypes={edgeTypes}
-			nodesDraggable={false}
-			nodesConnectable={false}
-			elementsSelectable={false}
-			panOnDrag={false}
-			zoomOnScroll={false}
-			zoomOnPinch={false}
-			zoomOnDoubleClick={false}
-			proOptions={{ hideAttribution: true }}
-			className="bg-transparent">
-			<Background
-				variant={BackgroundVariant.Dots}
-				gap={20}
-				size={1}
-				color="rgba(148,163,184,0.08)"
-			/>
-		</ReactFlow>
-	)
-}
-
-function DiagramPreview({ data }: { data: FlowchartData }) {
-	return (
-		<ReactFlowProvider>
-			<DiagramPreviewInner data={data} />
-		</ReactFlowProvider>
-	)
-}
-
-// Vite proxy: /api/nvidia/* → https://integrate.api.nvidia.com/*
-// Authorization header is forwarded as-is by the proxy (changeOrigin handles the rest)
 const NVIDIA_PROXY = "/api/nvidia/v1/chat/completions"
 
 const DEFAULT_MODEL =
@@ -116,8 +61,6 @@ export default function ChatSidebar({
 		},
 	])
 	const [isGenerating, setIsGenerating] = useState(false)
-  const [previewData, setPreviewData] = useState<FlowchartData | null>(null)
-  const [showPreview, setShowPreview] = useState(false)
 	const [errorToast, setErrorToast] = useState<ErrorToast>({
 		message: "",
 		visible: false,
@@ -145,34 +88,23 @@ export default function ChatSidebar({
 	}, [])
 
 	const extractFlowchartData = (content: string): FlowchartData | null => {
-		// 1. JSON inside markdown fences
 		const fenceMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/)
 		if (fenceMatch) {
 			try {
 				const parsed = JSON.parse(fenceMatch[1].trim())
 				if (parsed.nodes && parsed.edges) return parsed as FlowchartData
-			} catch {
-				/* continue */
-			}
+			} catch { /* continue */ }
 		}
-		// 2. Raw JSON string
 		try {
 			const parsed = JSON.parse(content)
 			if (parsed.nodes && parsed.edges) return parsed as FlowchartData
-		} catch {
-			/* continue */
-		}
-		// 3. JSON object embedded in prose
-		const embeddedMatch = content.match(
-			/\{[\s\S]*"nodes"[\s\S]*"edges"[\s\S]*\}/,
-		)
+		} catch { /* continue */ }
+		const embeddedMatch = content.match(/\{[\s\S]*"nodes"[\s\S]*"edges"[\s\S]*\}/)
 		if (embeddedMatch) {
 			try {
 				const parsed = JSON.parse(embeddedMatch[0])
 				if (parsed.nodes && parsed.edges) return parsed as FlowchartData
-			} catch {
-				/* continue */
-			}
+			} catch { /* continue */ }
 		}
 		return null
 	}
@@ -180,12 +112,9 @@ export default function ChatSidebar({
 	const handleSubmit = async () => {
 		if (!prompt.trim() || isGenerating) return
 
-		// Validate API key before doing anything
 		const apiKey = import.meta.env.VITE_NVIDIA_API_KEY as string | undefined
 		if (!apiKey) {
-			showError(
-				"NVIDIA API key not found. Add VITE_NVIDIA_API_KEY to your .env and restart Vite.",
-			)
+			showError("NVIDIA API key not found. Add VITE_NVIDIA_API_KEY to your .env and restart Vite.")
 			return
 		}
 
@@ -209,8 +138,6 @@ export default function ChatSidebar({
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					// Sent to localhost Vite proxy, which forwards it to NVIDIA.
-					// Fine for local dev — key only visible in your own browser network tab.
 					Authorization: `Bearer ${apiKey}`,
 				},
 				body: JSON.stringify({
@@ -297,26 +224,29 @@ Always respond with ONLY the JSON, no explanations.`,
 
 			const extractedData = extractFlowchartData(content)
 
-			setMessages((prev) => [
-				...prev,
-				{
-					id: `assistant-${Date.now()}`,
-					role: "assistant",
-					content: extractedData
-						? "Diagram generated – please review the preview before applying."
-						: content,
-					timestamp: new Date(),
-					diagramGenerated: !!extractedData,
-				},
-			])
-
 			if (extractedData) {
-				setPreviewData(extractedData)
-				setShowPreview(true)
+				onFlowchartGenerated(extractedData)
+				setMessages((prev) => [
+					...prev,
+					{
+						id: `assistant-${Date.now()}`,
+						role: "assistant",
+						content: "Diagram applied to canvas.",
+						timestamp: new Date(),
+						diagramGenerated: true,
+					},
+				])
 			} else {
-				showError(
-					"Could not extract a valid diagram. Try rephrasing your request.",
-				)
+				setMessages((prev) => [
+					...prev,
+					{
+						id: `assistant-${Date.now()}`,
+						role: "assistant",
+						content,
+						timestamp: new Date(),
+					},
+				])
+				showError("Could not extract a valid diagram. Try rephrasing your request.")
 			}
 		} catch (error) {
 			showError(
@@ -329,8 +259,7 @@ Always respond with ONLY the JSON, no explanations.`,
 				{
 					id: `error-${Date.now()}`,
 					role: "assistant",
-					content:
-						"Sorry, I encountered an error while generating the diagram. Please try again.",
+					content: "Sorry, I encountered an error. Please try again.",
 					timestamp: new Date(),
 				},
 			])
@@ -369,13 +298,9 @@ Always respond with ONLY the JSON, no explanations.`,
 						className="fixed top-6 right-6 z-50 max-w-md">
 						<div className="flex items-center gap-3 bg-card border-l-4 border-destructive rounded-lg p-4 shadow-lg">
 							<AlertCircle className="h-5 w-5 text-destructive shrink-0" />
-							<p className="text-sm text-foreground flex-1">
-								{errorToast.message}
-							</p>
+							<p className="text-sm text-foreground flex-1">{errorToast.message}</p>
 							<button
-								onClick={() =>
-									setErrorToast((prev) => ({ ...prev, visible: false }))
-								}
+								onClick={() => setErrorToast((prev) => ({ ...prev, visible: false }))}
 								className="text-muted-foreground hover:text-foreground transition-colors">
 								<X className="h-4 w-4" />
 							</button>
@@ -465,10 +390,8 @@ Always respond with ONLY the JSON, no explanations.`,
 								<p className="text-sm whitespace-pre-wrap">{message.content}</p>
 								{message.diagramGenerated && (
 									<div className="flex items-center gap-1 mt-2 pt-2 border-t border-white/10">
-										<RotateCcw className="h-3 w-3 text-primary" />
-										<span className="text-xs text-primary">
-											Diagram updated
-										</span>
+										<CheckCircle2 className="h-3 w-3 text-green-400" />
+										<span className="text-xs text-green-400">Applied to canvas</span>
 									</div>
 								)}
 							</div>
@@ -491,81 +414,10 @@ Always respond with ONLY the JSON, no explanations.`,
 						</motion.div>
 					)}
 
-<div ref={messagesEndRef} />
-			</div>
+					<div ref={messagesEndRef} />
+				</div>
 
-			{/* Preview Modal */}
-			<AnimatePresence>
-				{showPreview && previewData && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className="fixed inset-0 flex items-center justify-center bg-black/70 z-50 p-4">
-						<motion.div
-							initial={{ scale: 0.95, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							exit={{ scale: 0.95, opacity: 0 }}
-							transition={{ duration: 0.15 }}
-							className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden"
-							style={{ maxHeight: "85vh" }}>
-							{/* Header */}
-							<div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-700/60 shrink-0">
-								<div>
-									<h3 className="text-sm font-semibold text-slate-100">
-										Diagram Preview
-									</h3>
-									<p className="text-xs text-slate-400 mt-0.5">
-										{previewData.nodes.length} nodes ·{" "}
-										{previewData.edges.length} edges — looks good? Apply it to
-										the canvas.
-									</p>
-								</div>
-								<button
-									onClick={() => {
-										setShowPreview(false)
-										setPreviewData(null)
-									}}
-									className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded">
-									<X className="h-4 w-4" />
-								</button>
-							</div>
-
-							{/* Diagram */}
-							<div className="flex-1 min-h-0 bg-slate-950/60" style={{ height: 420 }}>
-								<DiagramPreview data={previewData} />
-							</div>
-
-							{/* Footer */}
-							<div className="flex items-center justify-end gap-2 px-5 py-3.5 border-t border-slate-700/60 bg-slate-900/80 shrink-0">
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => {
-										setShowPreview(false)
-										setPreviewData(null)
-									}}
-									className="text-slate-400 hover:text-slate-200">
-									Discard
-								</Button>
-								<Button
-									size="sm"
-									onClick={() => {
-										onFlowchartGenerated(previewData)
-										setShowPreview(false)
-										setPreviewData(null)
-									}}
-									className="gap-1.5">
-									<Check className="h-3.5 w-3.5" />
-									Apply to Canvas
-								</Button>
-							</div>
-						</motion.div>
-					</motion.div>
-				)}
-			</AnimatePresence>
-
-			{/* Input Area */}
+				{/* Input Area */}
 				<div className="p-4 border-t border-border/50 bg-card/80 shrink-0">
 					<div className="relative">
 						<Textarea
