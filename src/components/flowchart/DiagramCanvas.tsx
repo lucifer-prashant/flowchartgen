@@ -1,40 +1,40 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  Maximize2,
-  Minimize2,
-  Lock,
-  Unlock,
-  Trash2,
-  Square,
-  Diamond,
-  Circle,
-  Grid3x3,
-  Download,
-  Undo2,
-  Redo2,
-  Copy,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  AlignHorizontalJustifyCenter,
-  AlignVerticalJustifyCenter,
-  Layout,
-  Eye,
-  EyeOff,
-  Palette,
-  Save,
-  FolderOpen,
-  Image as ImageIcon,
-  Pentagon,
-  Hexagon,
-  ArrowUpDown,
-  ArrowLeftRight,
-  Target,
-  Eraser,
-  Pencil,
-  Sparkles,
-  X,
+	Maximize2,
+	Minimize2,
+	Lock,
+	Unlock,
+	Trash2,
+	Square,
+	Diamond,
+	Circle,
+	Grid3x3,
+	Download,
+	Undo2,
+	Redo2,
+	Copy,
+	ZoomIn,
+	ZoomOut,
+	Maximize,
+	AlignHorizontalJustifyCenter,
+	AlignVerticalJustifyCenter,
+	Layout,
+	Eye,
+	EyeOff,
+	Palette,
+	Save,
+	FolderOpen,
+	Image as ImageIcon,
+	Pentagon,
+	Hexagon,
+	ArrowUpDown,
+	ArrowLeftRight,
+	Target,
+	Eraser,
+	Pencil,
+	Sparkles,
+	X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -55,9 +55,9 @@ import {
 	useNodesState,
 	useEdgesState,
 	addEdge,
-    Connection,
-    ConnectionMode,
-    MarkerType,
+	Connection,
+	ConnectionMode,
+	MarkerType,
 	Node,
 	Edge,
 	NodeTypes,
@@ -70,7 +70,6 @@ import {
 	EdgeLabelRenderer,
 	BaseEdge,
 	ReactFlowProvider,
-	getNodesBounds,
 	getViewportForBounds,
 } from "@xyflow/react"
 import { toPng, toJpeg, toSvg } from "html-to-image"
@@ -98,12 +97,12 @@ export interface FlowchartData {
 }
 
 interface DiagramCanvasProps {
-  flowchartData: FlowchartData | null
-  generationId?: number
-  onDataChange?: (data: FlowchartData) => void
-  className?: string
-  // Optional callback to reset the entire diagram (clears state and stored data)
-  onResetCanvas?: () => void
+	flowchartData: FlowchartData | null
+	generationId?: number
+	onDataChange?: (data: FlowchartData) => void
+	className?: string
+	// Optional callback to reset the entire diagram (clears state and stored data)
+	onResetCanvas?: () => void
 }
 
 // --- Custom Editable Edge ---
@@ -278,7 +277,8 @@ const EditableNode = ({
 				)
 			case "decision":
 				return (
-					<svg pointerEvents="none"
+					<svg
+						pointerEvents="none"
 						style={commonStyle}
 						viewBox="0 0 100 60"
 						preserveAspectRatio="none"
@@ -292,40 +292,40 @@ const EditableNode = ({
 						/>
 					</svg>
 				)
-case "input":
-                      return (
-                        <svg pointerEvents="none"
-                          style={commonStyle}
-                          viewBox="0 0 100 40"
-                          preserveAspectRatio="none"
-                          fill="none">
-                          <polygon
-                            points="10,2 98,2 90,38 2,38"
-                            fill="none"
-                            stroke="#22c55e"
-                            strokeWidth={strokeWidth}
-                            vectorEffect="non-scaling-stroke"
-                          />
-                        </svg>
-                      )
+			case "input":
+				return (
+					<svg
+						pointerEvents="none"
+						style={commonStyle}
+						viewBox="0 0 100 40"
+						preserveAspectRatio="none"
+						fill="none">
+						<polygon
+							points="10,2 98,2 90,38 2,38"
+							fill="none"
+							stroke="#22c55e"
+							strokeWidth={strokeWidth}
+							vectorEffect="non-scaling-stroke"
+						/>
+					</svg>
+				)
 			case "output":
 				return (
-					<svg pointerEvents="none"
-							style={commonStyle}
-							viewBox="0 0 100 40"
-							preserveAspectRatio="none"
-							fill="none">
-							<polygon
-								points="10,2 98,2 90,38 2,38"
-								fill="none"
-								stroke="#a855f7"
-								strokeWidth={strokeWidth}
-								vectorEffect="non-scaling-stroke"
-							/>
-						</svg>
-					)
-
-
+					<svg
+						pointerEvents="none"
+						style={commonStyle}
+						viewBox="0 0 100 40"
+						preserveAspectRatio="none"
+						fill="none">
+						<polygon
+							points="10,2 98,2 90,38 2,38"
+							fill="none"
+							stroke="#a855f7"
+							strokeWidth={strokeWidth}
+							vectorEffect="non-scaling-stroke"
+						/>
+					</svg>
+				)
 
 			default: // process
 				return (
@@ -373,12 +373,12 @@ case "input":
 				lineClassName="!border-primary/60"
 				handleClassName="!bg-primary !h-3 !w-3 !rounded-sm !border-2 !border-slate-900"
 			/>
-<Handle
-                type="target"
-                position={Position.Top}
-                className="!w-3 !h-3 !border-2 !bg-slate-900 hover:!brightness-150"
-                style={{ borderColor: getHandleColor(), pointerEvents: "all" }}
-            />
+			<Handle
+				type="target"
+				position={Position.Top}
+				className="!w-3 !h-3 !border-2 !bg-slate-900 hover:!brightness-150"
+				style={{ borderColor: getHandleColor(), pointerEvents: "all" }}
+			/>
 			<div className="absolute inset-0 z-0">{renderShape()}</div>
 			<div className="z-10 px-3 py-2 text-center w-full overflow-hidden">
 				{isEditing ? (
@@ -522,24 +522,30 @@ function convertFromReactFlow(nodes: Node[], edges: Edge[]): FlowchartData {
 
 // --- Inner component that has access to ReactFlow context ---
 interface CanvasInnerProps {
-  flowchartData: FlowchartData | null
-  generationId?: number
-  onDataChange?: (data: FlowchartData) => void
-  isFullscreen: boolean
-  setIsFullscreen: (v: boolean) => void
-  // Optional callback to force a fresh canvas (clears internal state)
-  onResetCanvas?: () => void
+	flowchartData: FlowchartData | null
+	generationId?: number
+	onDataChange?: (data: FlowchartData) => void
+	isFullscreen: boolean
+	setIsFullscreen: (v: boolean) => void
+	// Optional callback to force a fresh canvas (clears internal state)
+	onResetCanvas?: () => void
 }
 
 function CanvasInner({
-  flowchartData,
-  generationId,
-  onDataChange,
-  isFullscreen,
-  setIsFullscreen,
-  onResetCanvas,
+	flowchartData,
+	generationId,
+	onDataChange,
+	isFullscreen,
+	setIsFullscreen,
+	onResetCanvas,
 }: CanvasInnerProps) {
-	const { fitView, zoomIn, zoomOut, getViewport } = useReactFlow()
+	const {
+		fitView,
+		zoomIn,
+		zoomOut,
+		getViewport,
+		getNodesBounds: getNodesBoundsFromHook,
+	} = useReactFlow()
 	const [nodes, setNodes, onNodesChange] = useNodesState([])
 	const [edges, setEdges, onEdgesChange] = useEdgesState([])
 	const canvasRef = useRef<HTMLDivElement>(null)
@@ -551,12 +557,12 @@ function CanvasInner({
 		BackgroundVariant.Dots,
 	)
 
-const [hasNodes, setHasNodes] = useState(false)
+	const [hasNodes, setHasNodes] = useState(false)
 	const [showQuickGuide, setShowQuickGuide] = useState(
 		() => localStorage.getItem("quickGuide") !== "hidden",
 	)
 
-  const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([])
+	const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([])
 	const [historyIndex, setHistoryIndex] = useState(-1)
 
 	const isHistoryAction = useRef(false)
@@ -670,8 +676,10 @@ const [hasNodes, setHasNodes] = useState(false)
 		const sanitizedEdges = edges.map(({ selected, ...rest }) => rest)
 		if (
 			lastSnapshot.current &&
-			JSON.stringify(sanitizedNodes) === JSON.stringify(lastSnapshot.current.nodes) &&
-			JSON.stringify(sanitizedEdges) === JSON.stringify(lastSnapshot.current.edges)
+			JSON.stringify(sanitizedNodes) ===
+				JSON.stringify(lastSnapshot.current.nodes) &&
+			JSON.stringify(sanitizedEdges) ===
+				JSON.stringify(lastSnapshot.current.edges)
 		) {
 			// No meaningful change – skip history entry
 			return
@@ -843,53 +851,105 @@ const [hasNodes, setHasNodes] = useState(false)
 		)
 	}, [nodes, setNodes])
 
-	const downloadImage = useCallback((format: string) => {
-		const viewport = canvasRef.current?.querySelector(".react-flow__viewport") as HTMLElement | null
-		if (!viewport) {
-			toast.error("Canvas not ready for export")
-			return
-		}
-		if (nodes.length === 0) {
-			toast.error("Nothing to export — canvas is empty")
-			return
-		}
+	const downloadImage = useCallback(
+		(format: string) => {
+			if (nodes.length === 0) {
+				toast.error("Nothing to export — canvas is empty")
+				return
+			}
 
-		const bounds = getNodesBounds(nodes)
-		const padding = 48
-		const imgW = Math.max(1200, bounds.width + padding * 2)
-		const imgH = Math.max(800, bounds.height + padding * 2)
-		const { x, y, zoom } = getViewportForBounds(bounds, imgW, imgH, 0.1, 4, padding)
+			const reactFlowEl = canvasRef.current?.querySelector(
+				".react-flow",
+			) as HTMLElement | null
+			if (!reactFlowEl) {
+				toast.error("Canvas not ready for export")
+				return
+			}
 
-		const opts = {
-			backgroundColor: "#0f172a",
-			width: imgW,
-			height: imgH,
-			style: {
-				width: `${imgW}px`,
-				height: `${imgH}px`,
-				transform: `translate(${x}px, ${y}px) scale(${zoom})`,
-			},
-		}
+			const bounds = getNodesBoundsFromHook(nodes)
+			const PADDING = 60
+			const exportWidth = Math.ceil(bounds.width + PADDING * 2)
+			const exportHeight = Math.ceil(bounds.height + PADDING * 2)
 
-		const ext = format === "jpeg" ? "jpg" : format
-		const filename = `flowchart-${Date.now()}.${ext}`
-		const toastId = toast.loading(`Exporting ${format.toUpperCase()}…`)
+			// We need to render nodes at 1:1 scale positioned relative to export canvas.
+			// getViewportForBounds gives us the transform (x, y, zoom) such that
+			// the node bounds fit inside exportWidth x exportHeight.
+			const {
+				x: vpX,
+				y: vpY,
+				zoom,
+			} = getViewportForBounds(
+				bounds,
+				exportWidth,
+				exportHeight,
+				0.5, // minZoom
+				2, // maxZoom — cap at 2× so nodes aren't excessively huge
+				PADDING,
+			)
 
-		const run =
-			format === "png" ? toPng(viewport, opts) :
-			format === "jpeg" ? toJpeg(viewport, { ...opts, quality: 0.92 }) :
-			toSvg(viewport, opts)
+			const viewport = canvasRef.current?.querySelector(
+				".react-flow__viewport",
+			) as HTMLElement | null
+			if (!viewport) {
+				toast.error("Canvas not ready for export")
+				return
+			}
 
-		run.then((url) => {
-			const a = document.createElement("a")
-			a.href = url
-			a.download = filename
-			a.click()
-			toast.success(`Saved ${filename}`, { id: toastId })
-		}).catch(() => {
-			toast.error(`Failed to export ${format.toUpperCase()}`, { id: toastId })
-		})
-	}, [nodes])
+			const ext = format === "jpeg" ? "jpg" : format
+			const filename = `flowchart-${Date.now()}.${ext}`
+			const toastId = toast.loading(`Exporting ${format.toUpperCase()}…`)
+
+			// Pixel ratio: 2–3 is plenty for sharp, readable exports.
+			// Higher values just bloat the file and can crash on large canvases.
+			const PIXEL_RATIO = 3
+
+			const sharedOpts = {
+				backgroundColor: "#0f172a",
+				width: exportWidth,
+				height: exportHeight,
+				// Override the viewport element's live transform with our computed one
+				style: {
+					width: `${exportWidth}px`,
+					height: `${exportHeight}px`,
+					transform: `translate(${vpX}px, ${vpY}px) scale(${zoom})`,
+					transformOrigin: "0 0",
+				},
+				pixelRatio: PIXEL_RATIO,
+				skipFonts: true,
+				// Clip to the export canvas so nothing bleeds outside
+				filter: (node: HTMLElement) => {
+					// exclude the minimap and controls from export
+					if (node.classList?.contains("react-flow__minimap")) return false
+					if (node.classList?.contains("react-flow__controls")) return false
+					if (node.classList?.contains("react-flow__panel")) return false
+					return true
+				},
+			}
+
+			const run =
+				format === "png"
+					? toPng(viewport, sharedOpts)
+					: format === "jpeg"
+						? toJpeg(viewport, { ...sharedOpts, quality: 0.95 })
+						: toSvg(viewport, sharedOpts)
+
+			run
+				.then((url) => {
+					const a = document.createElement("a")
+					a.href = url
+					a.download = filename
+					a.click()
+					toast.success(`Saved ${filename}`, { id: toastId })
+				})
+				.catch((err) => {
+					console.error("[Export] error", err)
+					toast.error(`Failed to export ${format.toUpperCase()}`, {
+						id: toastId,
+					})
+				})
+		},
+		[nodes, getNodesBoundsFromHook],
+	)
 
 	const saveToJSON = () => {
 		const data = convertFromReactFlow(nodes, edges)
@@ -949,26 +1009,33 @@ const [hasNodes, setHasNodes] = useState(false)
 				e.preventDefault()
 				redo()
 			}
-	if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-		e.preventDefault()
-		saveToJSON()
-	}
-	if ((e.ctrlKey || e.metaKey) && e.key === "a") {
-		e.preventDefault()
-		selectAll()
-	}
-	if (!e.ctrlKey && !e.metaKey && (e.key === "i" || e.key === "h")) {
-		e.preventDefault()
-		setShowQuickGuide(prev => {
-			const next = !prev
-			localStorage.setItem("quickGuide", next ? "shown" : "hidden")
-			return next
-		})
-	}
+			if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+				e.preventDefault()
+				saveToJSON()
+			}
+			if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+				e.preventDefault()
+				selectAll()
+			}
+			if (!e.ctrlKey && !e.metaKey && (e.key === "i" || e.key === "h")) {
+				e.preventDefault()
+				setShowQuickGuide((prev) => {
+					const next = !prev
+					localStorage.setItem("quickGuide", next ? "shown" : "hidden")
+					return next
+				})
+			}
 		}
 		document.addEventListener("keydown", handleKeyDown)
 		return () => document.removeEventListener("keydown", handleKeyDown)
-	}, [deleteSelected, duplicateSelected, undo, redo, selectAll, setShowQuickGuide])
+	}, [
+		deleteSelected,
+		duplicateSelected,
+		undo,
+		redo,
+		selectAll,
+		setShowQuickGuide,
+	])
 
 	return (
 		<div className="relative w-full h-full">
@@ -1318,7 +1385,6 @@ const [hasNodes, setHasNodes] = useState(false)
 					onConnect={isLocked ? undefined : onConnect}
 					nodeTypes={nodeTypes}
 					edgeTypes={edgeTypes}
-
 					minZoom={0.1}
 					maxZoom={4}
 					snapToGrid={showGrid}
@@ -1341,55 +1407,61 @@ const [hasNodes, setHasNodes] = useState(false)
 			</div>
 
 			{/* Quick Guide */}
-			{hasNodes && !isLocked && (
-  showQuickGuide ? (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="absolute bottom-3 left-3 bg-slate-900/95 backdrop-blur-sm border border-slate-700/50 rounded-lg p-2.5 text-xs text-slate-300 max-w-[260px] shadow-2xl z-10">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => { setShowQuickGuide(false); localStorage.setItem("quickGuide", "hidden") }}
-        className="absolute top-1 right-1 h-5 w-5 p-0"
-        title="Hide Quick Guide (i/h)">
-        <X className="w-3 h-3" />
-      </Button>
-      <p className="font-semibold text-slate-100 mb-1.5 flex items-center gap-1.5">
-        <Pencil className="w-3 h-3 text-primary" /> Quick Guide
-      </p>
-      <ul className="space-y-0.5 list-none text-slate-400 text-[10px] leading-relaxed">
-        <li>• Double-click nodes/edges to edit text</li>
-        <li>• Drag corner handles to resize nodes</li>
-        <li>• Shift+Click to select multiple items</li>
-        <li>• Ctrl+Z/Y for undo/redo history</li>
-        <li>• Ctrl+D to duplicate selection</li>
-        <li>• Ctrl+S to save as JSON file</li>
-        <li>• Ctrl+A to select all nodes</li>
-      </ul>
-    </motion.div>
-  ) : (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => { setShowQuickGuide(true); localStorage.setItem("quickGuide", "shown") }}
-      className="fixed bottom-3 left-3 h-8 w-8"
-      title="Show Quick Guide (i/h)">
-      <span className="text-sm font-bold">i</span>
-    </Button>
-  )
-)}
+			{hasNodes &&
+				!isLocked &&
+				(showQuickGuide ? (
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						className="absolute bottom-3 left-3 bg-slate-900/95 backdrop-blur-sm border border-slate-700/50 rounded-lg p-2.5 text-xs text-slate-300 max-w-[260px] shadow-2xl z-10">
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => {
+								setShowQuickGuide(false)
+								localStorage.setItem("quickGuide", "hidden")
+							}}
+							className="absolute top-1 right-1 h-5 w-5 p-0"
+							title="Hide Quick Guide (i/h)">
+							<X className="w-3 h-3" />
+						</Button>
+						<p className="font-semibold text-slate-100 mb-1.5 flex items-center gap-1.5">
+							<Pencil className="w-3 h-3 text-primary" /> Quick Guide
+						</p>
+						<ul className="space-y-0.5 list-none text-slate-400 text-[10px] leading-relaxed">
+							<li>• Double-click nodes/edges to edit text</li>
+							<li>• Drag corner handles to resize nodes</li>
+							<li>• Shift+Click to select multiple items</li>
+							<li>• Ctrl+Z/Y for undo/redo history</li>
+							<li>• Ctrl+D to duplicate selection</li>
+							<li>• Ctrl+S to save as JSON file</li>
+							<li>• Ctrl+A to select all nodes</li>
+						</ul>
+					</motion.div>
+				) : (
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => {
+							setShowQuickGuide(true)
+							localStorage.setItem("quickGuide", "shown")
+						}}
+						className="fixed bottom-3 left-3 h-8 w-8"
+						title="Show Quick Guide (i/h)">
+						<span className="text-sm font-bold">i</span>
+					</Button>
+				))}
 		</div>
 	)
 }
 
 // --- Main Component (provides ReactFlowProvider) ---
 export default function DiagramCanvas({
-  flowchartData,
-  generationId,
-  onDataChange,
-  className,
-  onResetCanvas,
+	flowchartData,
+	generationId,
+	onDataChange,
+	className,
+	onResetCanvas,
 }: DiagramCanvasProps) {
 	const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -1401,14 +1473,14 @@ export default function DiagramCanvas({
 				className,
 			)}>
 			<ReactFlowProvider>
-<CanvasInner
-  			flowchartData={flowchartData}
-  			generationId={generationId}
-  			onDataChange={onDataChange}
-  			isFullscreen={isFullscreen}
-  			setIsFullscreen={setIsFullscreen}
-  			onResetCanvas={onResetCanvas}
-  		/>
+				<CanvasInner
+					flowchartData={flowchartData}
+					generationId={generationId}
+					onDataChange={onDataChange}
+					isFullscreen={isFullscreen}
+					setIsFullscreen={setIsFullscreen}
+					onResetCanvas={onResetCanvas}
+				/>
 			</ReactFlowProvider>
 		</div>
 	)
